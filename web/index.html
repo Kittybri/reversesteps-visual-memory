@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#141714" />
+    <title>ReverseSteps · Visual memory</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="ReverseSteps home"
+        ><span class="brand-icon">↶</span> ReverseSteps<span class="brand-tag"
+          >VISUAL MEMORY</span
+        ></a
+      >
+      <div class="top-actions">
+        <span id="save-state" role="status">Opening local workspace…</span
+        ><button id="export" class="quiet">Export</button
+        ><label class="button quiet" for="import">Import</label
+        ><input
+          id="import"
+          type="file"
+          accept="application/json,.json"
+          hidden
+        />
+        <button id="export-recovery" class="quiet" hidden>
+          Recover backup
+        </button>
+      </div>
+    </header>
+    <main>
+      <section class="intro">
+        <div>
+          <p class="eyebrow">
+            <span class="dot"></span> A MEMORY FOR THE THINGS YOU TAKE APART
+          </p>
+          <h1>Every piece.<br /><span>A way back.</span></h1>
+          <p class="intro-copy">
+            Capture the teardown. Find the forgotten part.<br />Rebuild with the
+            evidence right in front of you.
+          </p>
+        </div>
+        <div class="session-summary">
+          <span class="eyebrow">YOUR WORKBENCH</span
+          ><label for="title" class="sr-only">Object name</label
+          ><input
+            id="title"
+            maxlength="200"
+            value="My first teardown"
+            aria-label="Object name"
+          />
+          <div class="session-counts">
+            <span><strong id="step-count">00</strong> recorded steps</span
+            ><span><strong id="part-count">00</strong> marked parts</span>
+          </div>
+          <button id="new" class="text-button">+ Start a new object</button>
+        </div>
+      </section>
+      <div id="notice" class="notice" role="status" hidden></div>
+      <section class="workspace">
+        <div class="memory-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">01 / RECORD THE STORY</p>
+              <h2>The evidence stays.</h2>
+            </div>
+            <label for="photos" class="button primary">＋ Add photos</label
+            ><input id="photos" type="file" accept="image/*" multiple hidden />
+          </div>
+          <div class="viewer" id="viewer">
+            <div id="empty" class="empty">
+              <span class="empty-symbol">↶</span>
+              <h3>Start before the first screw.</h3>
+              <p>
+                Add a photo before each removal. Keep the removed part visible
+                beside the object.
+              </p>
+              <label class="button outline" for="photos"
+                >Choose your first photos</label
+              ><span class="small"
+                >Up to 12 photos · stored in this browser</span
+              >
+            </div>
+            <div id="photo-stage" hidden>
+              <img id="main-photo" alt="Recorded step" />
+              <div id="regions" aria-label="Marked part regions"></div>
+              <div id="drawing" hidden></div>
+              <div class="image-caption">
+                <span id="frame-label">STEP 01</span
+                ><span>ORIGINAL EVIDENCE</span>
+              </div>
+            </div>
+          </div>
+          <div id="step-editor" hidden>
+            <div class="editor-top">
+              <label class="field grow"
+                >What happened here?<input
+                  id="note"
+                  maxlength="2000"
+                  placeholder="e.g. Removed the bracket; long screw is on the left" /></label
+              ><button
+                id="remove-step"
+                class="quiet danger"
+                title="Remove selected step"
+              >
+                Remove step
+              </button>
+            </div>
+            <div class="mark-row">
+              <label class="field grow"
+                >Part name<input
+                  id="part-label"
+                  maxlength="200"
+                  placeholder="e.g. Long bracket screw" /></label
+              ><button id="mark" class="button outline">⌖ Mark a part</button>
+            </div>
+            <p id="mark-help" class="small">
+              Mark the visible parts you want to find later. Regions are
+              selected by you.
+            </p>
+            <div id="part-list" class="part-list"></div>
+          </div>
+          <div class="timeline-heading">
+            <span class="eyebrow">RECORDED ORDER</span
+            ><button id="reverse" class="text-button" disabled>
+              ↶ Rebuild in reverse
+            </button>
+          </div>
+          <div id="timeline" class="timeline">
+            <p class="small">Your steps will appear here.</p>
+          </div>
+          <div id="rebuild-controls" class="rebuild-controls" hidden>
+            <button id="previous" class="quiet">← Previous</button
+            ><span id="rebuild-label"></span
+            ><button id="next" class="quiet">Next →</button>
+          </div>
+        </div>
+        <aside class="query-panel">
+          <p class="eyebrow">02 / FIND THE WAY BACK</p>
+          <h2>Where did<br />this belong?</h2>
+          <p class="muted">
+            One loose part. Your recorded history.<br />A suggestion you can
+            actually inspect.
+          </p>
+          <label for="query-photo" class="query-drop" id="query-drop"
+            ><span id="query-placeholder"
+              ><span class="query-icon">⌕</span
+              ><strong>Add a photo of the loose part</strong
+              ><span
+                >Clear light. One part. Another angle if needed.</span
+              ></span
+            ><img id="query-preview" alt="Loose part to look for" hidden /><span
+              id="query-replace"
+              hidden
+              >Choose a different part</span
+            ></label
+          ><input id="query-photo" type="file" accept="image/*" hidden />
+          <div id="query-views" class="query-views"></div>
+          <div id="extra-view-controls" hidden>
+            <label for="query-extra" class="button outline"
+              >＋ Same part, another view</label
+            >
+            <input id="query-extra" type="file" accept="image/*" hidden />
+            <p class="small">
+              Keep the same piece. Up to 3 views are compared together.
+            </p>
+          </div>
+          <div id="provider-state" class="provider-state">
+            <span class="status-dot"></span
+            ><span id="provider-message">Checking Meta connection…</span>
+          </div>
+          <button id="find" class="button primary find" disabled>
+            Find its story <span>↗</span>
+          </button>
+          <p class="small privacy">
+            Lookup sends these photos to Meta. Capturing, marking and replaying
+            stay local.
+          </p>
+          <div id="result" class="result" aria-live="polite" hidden></div>
+          <div class="principle">
+            <span>↳</span>
+            <p>
+              <strong>Evidence over guesswork.</strong><br />Similar parts may
+              need another view. A visual match is a suggestion for you to
+              check.
+            </p>
+          </div>
+        </aside>
+      </section>
+      <footer>
+        <span>REVERSESTEPS / BUILT TO REMEMBER</span
+        ><span>Real photos. Original steps. A clearer way back.</span>
+      </footer>
+    </main>
+  </body>
+</html>

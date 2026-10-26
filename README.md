@@ -14,7 +14,32 @@ A new, standalone visual-memory module for the Meta Global AI Developer Hackatho
 
 ## Current status
 
-**Repository foundation, not a working vision application.** The new code validates recorded evidence and checks whether a model-produced part-match proposal cites real recorded regions. It does not recognize parts, call models, or establish that a proposed match is correct. There is no user interface or live Meta integration yet.
+**Local photo workspace and Meta adapter implemented; real recognition not yet evaluated.** Capture up to 12 photographs, add notes and mark parts, replay steps in reverse, and export/import a complete backup. The workspace saves in this browser's IndexedDB. Browser storage can be cleared; export to keep an independent copy. Query photographs are temporary and are not included in backups.
+
+The Python service can send an explicit lookup to Muse Spark when configured. It verifies source-image hashes and validates the answer's evidence references. No live provider request has been made in development so far. Automated checks use test doubles; they do not establish recognition accuracy or live API compatibility. SAM and automatic part-region detection are not implemented.
+
+## Open the local app
+
+From this checkout, with Python 3.11+:
+
+```powershell
+py -m reversesteps.server --port 8765
+```
+
+Open `http://127.0.0.1:8765/`. Keep this server running while using the app. It binds to this computer only, so a phone cannot reach it over Wi-Fi. No Python dependencies are required. Source files are served directly from `web/`; no frontend build is needed. Use the same address and browser each time to return to the saved workspace.
+
+1. Name the object and add photos in removal order.
+2. Select each step, write a note and name a visible part. Choose **Mark a part**, then drag a box around it.
+3. Choose **Rebuild in reverse** to walk back through the original photographs.
+4. When Meta is configured, upload a loose-part photo and choose **Find its story**. Inspect any suggestion in the source photo; similar parts should request more evidence.
+
+Only an explicit lookup sends the source and query photos to Meta. The service does not save photos or model responses. Use **Same part, another view** to retain the first query photo and add up to two more. Selecting **Choose a different part** starts a fresh query. Multiple views are the user's assertion of the same physical piece, not verified identity. Failed local restores preserve a recovery copy or pause saving, and a recovery download is available when the previous record could be read.
+
+## Enable Meta after confirming account readiness
+
+Configure `MODEL_API_KEY` in the server process environment and set `REVERSESTEPS_META_ENABLED=1`, then restart the server. Never put a key in browser code, source control or a screenshot. The app's readiness indicator means these settings exist; it does not prove credits or model access. Confirm those in your Meta account first.
+
+The adapter uses Meta's Responses endpoint and documented JSON schema fields. Strict structured output with this model still needs a live compatibility check. Calls have no automatic retry; upstream errors produce an honest no-result state. The 120-second provider timeout is a socket timeout, not a guaranteed whole-request deadline.
 
 The example below is a synthetic metadata fixture used to exercise validation. It contains no photographs and is not an AI result.
 
@@ -23,7 +48,7 @@ py -m reversesteps validate examples/recorded-session.json
 py -m unittest discover -s tests -v
 ```
 
-Python 3.11+; standard library only. No account, API key or package installation is needed for these checks.
+Python 3.11+; standard library only. No account, API key or package installation is needed for these Python checks. For DOM interaction checks, install Node.js 22+, run `npm install`, then `npm test`. DOM tests mock image decoding, canvas and layout: they are not a substitute for browser rendering tests.
 
 ## Planned Meta integration
 
@@ -38,8 +63,14 @@ Cross-photo part identification and useful assembly comparisons must be measured
 
 - `reversesteps/evidence.py`: new recorded-evidence and match-proposal validation.
 - `reversesteps/__main__.py`: metadata validation command.
+- `reversesteps/server.py`: local-only static and lookup service.
+- `reversesteps/meta_provider.py`: Meta Responses adapter with validated references.
+- `web/`: photo workspace, local persistence, reverse timeline and lookup interface.
 - `tests/`: evidence integrity, ambiguity and input validation checks.
 - `docs/BUILD_PLAN.md`: focused milestones and demo evaluation.
+- `docs/WORKING_CONTRACT.md`: Codex/Claude ownership and integration contract.
+- `docs/VALIDATION.md`: completed checks and remaining verification.
+- `docs/CHESS_TEST.md`: the user's chosen first real-object test protocol.
 - `PROVENANCE.md`: pre-existing work, event work and AI assistance.
 - `AGENTS.md` / `CLAUDE.md`: shared development boundaries.
 

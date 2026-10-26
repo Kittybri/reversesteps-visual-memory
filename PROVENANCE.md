@@ -14,14 +14,18 @@ October 26, 2026: created this new repository and authored its evidence-validati
 
 Implementation must continue here as new work. Do not copy the old Android app or preparation implementation into this repository. Record additional milestones with their actual dates and validation evidence.
 
+October 26, 2026, subsequent milestone: Codex and Claude Code collaborated on a newly authored local web application. Codex implemented photo import/normalization, IndexedDB persistence, session backups, manual part-region marking, reverse replay, evidence-result UI and DOM interaction tests. Claude implemented the local HTTP service, Meta Responses adapter and offline provider/server tests. Codex integrated the contributions and ran the tests; Claude then reviewed the interface read-only. The user directed the collaboration and the indie-track goal. No prior app code or assets were imported. No actual Meta call or photographic recognition evaluation was performed during this milestone.
+
+The review led to recovery preservation, persistent source highlights, mutation guards during lookups, request-size preflight and multi-view queries. Claude implemented 1–3 query views and sanitized usage counts in the provider/server; Codex implemented their UI and regression checks. Abriana selected her chess set for the first real test. Both tools assessed it as an initial test of restoring recorded arrangements, with unresolved identical-piece ambiguity disclosed.
+
 ## People and tools
 
 - Project owner and direction: **Abriana Meazzo (Kittybri)**.
 - Codex assisted with planning, coding, documentation, repository setup and verification.
-- Claude Code helped build the separate October 25 preparation preview. It has not authored this repository's initial foundation. Future Claude contributions must be recorded here as they occur.
+- Claude Code helped build the separate October 25 preparation preview, which remains excluded. It did not author this repository's initial foundation; its October 26 server/adapter implementation and review are recorded above.
 - No human teammate is claimed. Any added human contributor must satisfy the event's participant rules.
 
-Development tools and runtime providers are separate: the intended application AI calls will use Meta models. The initial foundation makes no model calls.
+Development tools and runtime providers are separate: application AI calls use the Meta adapter only when explicitly configured and requested. The initial foundation made no model calls.
 
 ## Demo disclosure draft
 

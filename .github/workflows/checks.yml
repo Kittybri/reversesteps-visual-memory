@@ -1,4 +1,4 @@
-name: Evidence foundation checks
+name: Offline application checks
 on: [push, pull_request]
 permissions:
   contents: read
@@ -15,3 +15,15 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: python -m unittest discover -s tests -v
       - run: python -m reversesteps validate examples/recorded-session.json
+  interface-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "11.25.0"
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm test

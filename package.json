@@ -1,0 +1,15 @@
+{
+  "name": "reversesteps-visual-memory-ui-checks",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/web.test.cjs"
+  },
+  "devDependencies": {
+    "fake-indexeddb": "6.2.6",
+    "jsdom": "30.1.3"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
