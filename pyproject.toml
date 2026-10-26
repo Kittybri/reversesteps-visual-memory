@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "reversesteps-visual-memory"
+version = "0.1.0"
+description = "Evidence foundation for mapping loose parts back to recorded disassembly steps"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{name = "Abriana Meazzo"}]
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["reversesteps*"]

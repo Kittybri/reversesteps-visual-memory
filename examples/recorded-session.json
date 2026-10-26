@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "id": "synthetic-desk-stand",
+  "title": "Synthetic desk-stand metadata (no photographs)",
+  "images": [
+    {"id": "sample-frame-1", "sha256": "0000000000000000000000000000000000000000000000000000000000000000"},
+    {"id": "sample-frame-2", "sha256": "1111111111111111111111111111111111111111111111111111111111111111"}
+  ],
+  "steps": [
+    {"id": "remove-base", "position": 1, "image_id": "sample-frame-1", "note": "Authored fixture: two short screws beside the base.", "observations": [
+      {"id": "short-screw-a", "label": "Sample short screw", "box": [0.1, 0.2, 0.3, 0.4]},
+      {"id": "short-screw-b", "label": "Similar sample short screw", "box": [0.4, 0.2, 0.6, 0.4]}
+    ]},
+    {"id": "remove-bracket", "position": 2, "image_id": "sample-frame-2", "note": "Authored fixture: bracket removed from the support.", "observations": [
+      {"id": "support-bracket", "label": "Sample bracket", "box": [0.2, 0.1, 0.8, 0.9]}
+    ]}
+  ]
+}
