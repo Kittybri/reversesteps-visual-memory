@@ -22,6 +22,16 @@ Codex and Claude Code jointly authored this milestone at Abriana's request. Code
 | Local photo workspace and reverse timeline | Codex | Claude review; Codex DOM checks |
 | Meta adapter and local HTTP service | Claude | Codex review; Python tests executed by Codex |
 | Multi-view lookup | Both, across the agreed interface | Backend and DOM regression checks |
+| Camera lifecycle and JPEG capture | Claude; Codex integration review | Mocked hardware lifecycle tests executed by Codex |
+| Live panel, snapshot workflow and reference overlay | Codex; Claude integration review | DOM and real-controller integration checks with mocked hardware |
 | Product/demo strategy | Codex + Claude + Abriana | Real-object evaluation pending |
+
+## Live camera strategy and cross-review
+
+The partners chose live local preview plus deliberate snapshots as the next working feature. It uses the existing evidence and Meta lookup path without assuming a continuous video inference service or automatic identity recovery. Short-clip/SAM experiments remain a later measured step.
+
+Codex found that Claude's initial frame timeout began after `video.play()` completed, leaving pending playback unbounded. Claude replaced it with a single eight-second playback/readiness deadline and immediate cancellation of the startup waiter. Claude identified overlay aspect-ratio mismatch in Codex's interface; Codex gated the reference by compatible proportions and added camera resize handling. Additional tests cover null capture refusal, stale device enumeration and the real controller integrated into the app with simulated hardware.
+
+The overlay is a manual reference, with no placement validation or automatic registration. The continuous feed is not recorded, no microphone is requested, no model call is automatic, and page hiding stops the camera. Actual webcam and browser rendering checks remain outstanding because browser automation is disabled in the user's Work settings.
 
 No autonomous background collaboration is implied after a chat turn ends. Further work continues when this chat is active; live recognition experiments await account readiness and the user's actual photographs.

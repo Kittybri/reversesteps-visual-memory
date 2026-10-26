@@ -1,5 +1,9 @@
 # Focused build plan
 
+## Implemented milestone — October 26
+
+The standalone local workspace now supports source photo upload, manual regions, reverse replay, backups, a guarded Meta adapter and multiple query views. The next implemented slice adds explicit live webcam preview, snapshot capture into the same source/query workflow and a manual recorded-photo overlay. The user selected a chess set for the first real test; follow [CHESS_TEST.md](CHESS_TEST.md). Camera and recognition behavior still need hands-on/provider evaluation. SAM tracking and automatic step detection remain unimplemented; do not imply that the live preview already performs them.
+
 ## First useful demonstration
 
 One person records five to eight disassembly steps of a small desk stand. A second person photographs a loose part and receives possible matching observations, linked to the original photographs. Similar or poorly photographed parts produce a request for another view instead of a definite identification.

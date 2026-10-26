@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test": "node --test tests/web.test.cjs"
+    "test": "node --test tests/web.test.cjs tests/camera.test.cjs"
   },
   "devDependencies": {
     "fake-indexeddb": "6.2.6",

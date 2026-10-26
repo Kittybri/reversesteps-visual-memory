@@ -67,6 +67,51 @@ async function setup(options = {}) {
   });
   const w = dom.window;
   const calls = [];
+  let camera = null;
+  if (options.camera) {
+    Object.defineProperties(w.document.getElementById("camera-video"), {
+      videoWidth: { value: 1000, configurable: true },
+      videoHeight: { value: 800, configurable: true },
+    });
+    w.ReverseStepsCamera = class {
+      constructor(callbacks) {
+        camera = this;
+        this.callbacks = callbacks;
+        this.starts = [];
+        this.captures = 0;
+        this.stops = 0;
+        this.data = PNG;
+        this.error = null;
+      }
+      async start(deviceId) {
+        this.starts.push(deviceId);
+        this.callbacks.onState({
+          state: "live",
+          message: "Test camera live",
+          deviceId: deviceId || "camera-a",
+        });
+      }
+      stop(message) {
+        this.stops++;
+        this.callbacks.onState({
+          state: "off",
+          message: message || "Test camera stopped",
+          deviceId: "",
+        });
+      }
+      capture() {
+        this.captures++;
+        if (this.error) throw new Error(this.error);
+        return this.data;
+      }
+      async listCameras() {
+        return [
+          { deviceId: "camera-a", label: "Test camera A" },
+          { deviceId: "camera-b", label: "Test camera B" },
+        ];
+      }
+    };
+  }
   w.indexedDB = options.db || new IDBFactory();
   Object.defineProperty(w, "crypto", { value: webcrypto });
   w.ResizeObserver = class {
@@ -124,6 +169,7 @@ async function setup(options = {}) {
     calls,
     errors,
     db: w.indexedDB,
+    camera,
   };
 }
 async function importData(ctx, data) {
@@ -419,6 +465,331 @@ test("deleting a source step removes orphan media and renumbers the recorded his
     assert.equal(saved.session.steps[0].id, "step-2");
     assert.equal(Object.keys(saved.images).length, 1);
     assert.equal(saved.images["img-1"], undefined);
+  } finally {
+    c.dom.window.close();
+  }
+});
+
+test("camera is user-started; captured step is hashed, persisted and never sent to Meta automatically", async () => {
+  const c = await setup({ camera: true });
+  try {
+    assert.equal(c.camera.starts.length, 0);
+    assert.equal(c.$("camera-step").disabled, true);
+    await c.$("camera-start").onclick();
+    await until(() => c.$("camera-device").options.length === 2);
+    assert.equal(c.$("camera-body").hidden, false);
+    assert.equal(c.$("camera-step").disabled, false);
+    await c.$("camera-step").onclick();
+    await c.w.eval("saveQueue");
+    const record = c.w.eval("snapshot()");
+    assert.equal(record.session.steps.length, 1);
+    assert.equal(record.session.steps[0].position, 1);
+    assert.equal(record.session.images[0].sha256, hash);
+    assert.equal(record.images[record.session.steps[0].image_id], PNG);
+    assert.equal(c.calls.filter((x) => x.url === "/api/match").length, 0);
+    const next = await setup({ db: c.db, camera: true });
+    try {
+      assert.equal(next.$("step-count").textContent, "01");
+      assert.equal(next.camera.starts.length, 0);
+    } finally {
+      next.dom.window.close();
+    }
+  } finally {
+    c.dom.window.close();
+  }
+});
+
+test("camera query and additional views retain evidence, reject duplicates and stop at three", async () => {
+  const c = await setup({ camera: true });
+  try {
+    await c.$("camera-start").onclick();
+    await c.$("camera-query").onclick();
+    await c.$("camera-extra").onclick();
+    assert.equal(c.$("query-views").children.length, 1);
+    assert.match(c.$("notice").textContent, /already included/);
+    for (let n = 1; n <= 2; n++) {
+      c.camera.data =
+        "data:image/png;base64," +
+        Buffer.concat([
+          Buffer.from(PNG.split(",")[1], "base64"),
+          Buffer.from([n]),
+        ]).toString("base64");
+      await c.$("camera-extra").onclick();
+    }
+    assert.equal(c.$("query-views").children.length, 3);
+    assert.equal(c.$("camera-extra").disabled, true);
+    const captures = c.camera.captures;
+    await c.$("camera-extra").onclick();
+    assert.equal(c.camera.captures, captures);
+    assert.equal(c.calls.filter((x) => x.url === "/api/match").length, 0);
+    assert.equal(c.$("step-count").textContent, "00");
+    await c.$("camera-query").onclick();
+    assert.equal(c.$("query-views").children.length, 1);
+  } finally {
+    c.dom.window.close();
+  }
+});
+
+test("reference overlay follows selected evidence and never changes captured pixels", async () => {
+  const c = await setup({ camera: true });
+  try {
+    await importData(c, fixture());
+    Object.defineProperties(c.$("main-photo"), {
+      naturalWidth: { value: 1000, configurable: true },
+      naturalHeight: { value: 800, configurable: true },
+    });
+    c.$("main-photo").onload();
+    await c.$("camera-start").onclick();
+    c.$("camera-compare").checked = true;
+    c.$("camera-compare").onchange();
+    assert.equal(c.$("camera-ghost").hidden, false);
+    assert.equal(c.$("camera-ghost").getAttribute("src"), PNG);
+    assert.match(c.$("camera-reference-badge").textContent, /01/);
+    c.w.eval("selectStep(1)");
+    assert.match(c.$("camera-reference-badge").textContent, /02/);
+    c.$("camera-opacity").value = "65";
+    c.$("camera-opacity").oninput();
+    assert.equal(c.$("camera-ghost").style.opacity, "0.65");
+    await c.$("camera-query").onclick();
+    assert.equal(c.w.eval("query.views[0]"), PNG);
+    c.$("new").click();
+    assert.equal(c.$("camera-compare").checked, false);
+    assert.equal(c.$("camera-ghost").hidden, true);
+  } finally {
+    c.dom.window.close();
+  }
+});
+
+test("incompatible photo proportions disable the reference and camera resize recomputes compatibility", async () => {
+  const c = await setup({ camera: true });
+  try {
+    await importData(c, fixture());
+    await c.$("camera-start").onclick();
+    Object.defineProperties(c.$("main-photo"), {
+      naturalWidth: { value: 600, configurable: true },
+      naturalHeight: { value: 800, configurable: true },
+    });
+    c.$("main-photo").onload();
+    assert.equal(c.$("camera-compare").disabled, true);
+    assert.match(c.$("camera-reference-help").textContent, /different shape/);
+    c.$("camera-compare").checked = true;
+    c.$("camera-compare").onchange();
+    assert.equal(c.$("camera-ghost").hidden, true);
+    Object.defineProperties(c.$("camera-video"), {
+      videoWidth: { value: 600, configurable: true },
+      videoHeight: { value: 800, configurable: true },
+    });
+    c.$("camera-video").dispatchEvent(new c.w.Event("resize"));
+    assert.equal(c.$("camera-compare").disabled, false);
+    assert.equal(c.$("camera-stage").style.aspectRatio, "600 / 800");
+    c.$("camera-compare").checked = true;
+    c.$("camera-compare").onchange();
+    assert.equal(c.$("camera-ghost").hidden, false);
+    Object.defineProperty(c.$("camera-video"), "videoWidth", {
+      value: 1000,
+      configurable: true,
+    });
+    c.$("camera-video").dispatchEvent(new c.w.Event("resize"));
+    assert.equal(c.$("camera-compare").checked, false);
+    assert.equal(c.$("camera-ghost").hidden, true);
+  } finally {
+    c.dom.window.close();
+  }
+});
+
+test("busy and cap guards prevent camera mutation while Stop remains available", async () => {
+  const c = await setup({ camera: true });
+  try {
+    await c.$("camera-start").onclick();
+    c.w.eval("setBusy(true)");
+    await c.$("camera-step").onclick();
+    await c.$("camera-query").onclick();
+    assert.equal(c.camera.captures, 0);
+    c.$("camera-stop").click();
+    assert.equal(c.camera.stops, 1);
+    assert.equal(c.$("camera-body").hidden, true);
+    c.w.eval("setBusy(false)");
+    await c.$("camera-start").onclick();
+    for (let i = 0; i < 12; i++) await c.$("camera-step").onclick();
+    assert.equal(c.$("camera-step").disabled, true);
+    const captures = c.camera.captures;
+    await c.$("camera-step").onclick();
+    assert.equal(c.camera.captures, captures);
+    assert.equal(c.$("step-count").textContent, "12");
+  } finally {
+    c.dom.window.close();
+  }
+});
+
+test("failed camera capture keeps existing session and query and returns controls", async () => {
+  const c = await setup({ camera: true });
+  try {
+    await importData(c, fixture());
+    await c.$("camera-start").onclick();
+    await c.$("camera-query").onclick();
+    const before = JSON.stringify(c.w.eval("snapshot()"));
+    const queryBefore = JSON.stringify(c.w.eval("query"));
+    c.camera.error = "No camera frame is ready";
+    await c.$("camera-step").onclick();
+    await c.$("camera-extra").onclick();
+    assert.equal(JSON.stringify(c.w.eval("snapshot()")), before);
+    assert.equal(JSON.stringify(c.w.eval("query")), queryBefore);
+    assert.match(c.$("notice").textContent, /No camera frame/);
+    assert.equal(c.$("camera-step").disabled, false);
+  } finally {
+    c.dom.window.close();
+  }
+});
+
+test("controller null capture refusal cannot become a query or saved step", async () => {
+  const c = await setup({ camera: true });
+  try {
+    await importData(c, fixture());
+    await c.$("camera-start").onclick();
+    await c.$("camera-query").onclick();
+    const original = JSON.stringify(c.w.eval("snapshot()"));
+    const originalQuery = JSON.stringify(c.w.eval("query"));
+    c.camera.capture = () => {
+      c.camera.callbacks.onError("Waiting for a camera picture.");
+      return null;
+    };
+    await c.$("camera-step").onclick();
+    await c.$("camera-query").onclick();
+    await c.$("camera-extra").onclick();
+    assert.equal(JSON.stringify(c.w.eval("snapshot()")), original);
+    assert.equal(JSON.stringify(c.w.eval("query")), originalQuery);
+    assert.match(c.$("notice").textContent, /Waiting for a camera picture/);
+    assert.equal(c.$("camera-query").disabled, false);
+  } finally {
+    c.dom.window.close();
+  }
+});
+
+test("late device list from an old camera cannot overwrite the current selection", async () => {
+  const c = await setup({ camera: true });
+  try {
+    let oldResolve;
+    let requests = 0;
+    c.camera.listCameras = () =>
+      ++requests === 1
+        ? new Promise((resolve) => (oldResolve = resolve))
+        : Promise.resolve([{ deviceId: "new", label: "New camera" }]);
+    await c.$("camera-start").onclick();
+    c.camera.callbacks.onState({
+      state: "starting",
+      message: "Switching",
+      deviceId: "new",
+    });
+    c.camera.callbacks.onState({
+      state: "live",
+      message: "New camera live",
+      deviceId: "new",
+    });
+    await until(() => c.$("camera-device").value === "new");
+    oldResolve([{ deviceId: "old", label: "Old camera" }]);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(c.$("camera-device").value, "new");
+  } finally {
+    c.dom.window.close();
+  }
+});
+
+test("stopped or switched camera clears the manually aligned reference", async () => {
+  const c = await setup({ camera: true });
+  try {
+    await importData(c, fixture());
+    await c.$("camera-start").onclick();
+    await until(() => c.$("camera-device").options.length === 2);
+    c.$("camera-compare").checked = true;
+    c.$("camera-compare").onchange();
+    c.camera.callbacks.onState({
+      state: "starting",
+      message: "Switching camera",
+      deviceId: "",
+    });
+    assert.equal(c.$("camera-compare").checked, false);
+    assert.equal(c.$("camera-ghost").hidden, true);
+    c.camera.stop("Camera hidden");
+    assert.match(c.$("camera-message").textContent, /Camera hidden/);
+    assert.equal(c.$("camera-start").hidden, false);
+    assert.equal(c.$("camera-step").disabled, true);
+  } finally {
+    c.dom.window.close();
+  }
+});
+
+test("real controller and app integrate through capture, saving and hidden-page cleanup with mocked hardware", async () => {
+  const c = await setup({ camera: true });
+  try {
+    const video = c.$("camera-video");
+    Object.defineProperties(video, {
+      readyState: { value: 4, configurable: true },
+      videoWidth: { value: 1920, configurable: true },
+      videoHeight: { value: 1080, configurable: true },
+    });
+    video.play = async () => {};
+    video.pause = () => {};
+    const track = new c.w.EventTarget();
+    track.readyState = "live";
+    track.muted = false;
+    track.getSettings = () => ({ deviceId: "physical-test-double" });
+    let stops = 0;
+    track.stop = () => {
+      track.readyState = "ended";
+      stops++;
+    };
+    const stream = { getTracks: () => [track], getVideoTracks: () => [track] };
+    const requests = [];
+    Object.defineProperty(c.w.navigator, "mediaDevices", {
+      value: {
+        getUserMedia: async (config) => {
+          requests.push(config);
+          return stream;
+        },
+        enumerateDevices: async () => [
+          {
+            kind: "videoinput",
+            deviceId: "physical-test-double",
+            label: "Mocked hardware",
+          },
+        ],
+      },
+      configurable: true,
+    });
+    // Encoding is a deliberate test double, not a real webcam photograph.
+    const jpeg =
+      "data:image/jpeg;base64," +
+      Buffer.from([0xff, 0xd8, 0xff, 0xd9]).toString("base64");
+    c.w.HTMLCanvasElement.prototype.toDataURL = () => jpeg;
+    c.w.eval(fs.readFileSync(path.join(root, "web/camera.js"), "utf8"));
+    c.w.eval("initializeCamera()");
+    assert.equal(requests.length, 0);
+    await c.$("camera-start").onclick();
+    assert.equal(requests[0].audio, false);
+    assert.equal(c.$("camera-status").textContent, "● Live on this device");
+    await c.$("camera-step").onclick();
+    await c.w.eval("saveQueue");
+    const saved = c.w.eval("snapshot()");
+    assert.equal(
+      saved.session.images[0].sha256,
+      createHash("sha256")
+        .update(Buffer.from(jpeg.split(",")[1], "base64"))
+        .digest("hex"),
+    );
+    assert.equal(Object.values(saved.images)[0], jpeg);
+    await c.$("camera-query").onclick();
+    assert.equal(c.w.eval("query.views[0]"), jpeg);
+    assert.equal(c.calls.filter((x) => x.url === "/api/match").length, 0);
+    Object.defineProperty(c.w.document, "visibilityState", {
+      value: "hidden",
+      configurable: true,
+    });
+    c.w.document.dispatchEvent(new c.w.Event("visibilitychange"));
+    assert.equal(stops, 1);
+    assert.equal(video.srcObject, null);
+    assert.equal(c.$("camera-body").hidden, true);
+    assert.equal(c.$("step-count").textContent, "01");
+    c.w.eval("cameraController.dispose()");
   } finally {
     c.dom.window.close();
   }

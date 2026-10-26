@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#141714" />
     <title>ReverseSteps · Visual memory</title>
     <link rel="stylesheet" href="/style.css" />
+    <script src="/camera.js" defer></script>
     <script src="/app.js" defer></script>
   </head>
   <body>
@@ -59,6 +60,103 @@
         </div>
       </section>
       <div id="notice" class="notice" role="status" hidden></div>
+      <section
+        id="camera-deck"
+        class="camera-deck"
+        aria-labelledby="camera-heading"
+      >
+        <div class="camera-heading">
+          <div>
+            <p class="eyebrow">LIVE / CAPTURE THE MOMENT</p>
+            <h2 id="camera-heading">Let the camera remember.</h2>
+          </div>
+          <div class="camera-heading-actions">
+            <span id="camera-status" role="status">Camera off</span>
+            <button id="camera-start" class="button primary" disabled>
+              Start camera
+            </button>
+            <button id="camera-stop" class="button outline" hidden>
+              Stop camera
+            </button>
+          </div>
+        </div>
+        <p id="camera-message" class="small">
+          Use your webcam to save steps and photograph a loose piece. Camera
+          access starts only when you choose Start camera.
+        </p>
+        <div id="camera-body" class="camera-body" hidden>
+          <div id="camera-stage" class="camera-stage">
+            <video
+              id="camera-video"
+              autoplay
+              muted
+              playsinline
+              aria-label="Live camera preview"
+            ></video>
+            <img
+              id="camera-ghost"
+              alt="Recorded step reference over the live camera"
+              hidden
+            />
+            <div class="camera-badges">
+              <span id="camera-live-badge">OPENING CAMERA</span
+              ><span id="camera-reference-badge" hidden></span>
+            </div>
+          </div>
+          <div class="camera-tools">
+            <label class="field" for="camera-device">Camera</label>
+            <select id="camera-device" aria-label="Select camera" disabled>
+              <option value="">Default camera</option>
+            </select>
+            <div class="camera-capture-group">
+              <span class="eyebrow">BUILD THE HISTORY</span
+              ><button id="camera-step" class="button primary" disabled>
+                ＋ Save this step
+              </button>
+              <p id="camera-step-help" class="small">
+                Capture before you move a piece, then mark it in the photo
+                below.
+              </p>
+            </div>
+            <div class="camera-capture-group">
+              <span class="eyebrow">FIND A PIECE</span
+              ><button id="camera-query" class="button outline" disabled>
+                Use as mystery piece</button
+              ><button id="camera-extra" class="quiet" disabled>
+                ＋ Another view of this piece
+              </button>
+              <p id="camera-query-help" class="small">
+                Hold a piece in view. Use Find its story below when you are
+                ready.
+              </p>
+            </div>
+            <div class="camera-reference">
+              <label
+                ><input id="camera-compare" type="checkbox" disabled /> Overlay
+                recorded step</label
+              ><label for="camera-opacity" class="small"
+                >Reference strength
+                <output id="camera-opacity-value">40%</output></label
+              ><input
+                id="camera-opacity"
+                type="range"
+                min="0"
+                max="80"
+                value="40"
+                disabled
+              />
+              <p id="camera-reference-help" class="small">
+                Select a step below and line up the camera yourself. This
+                reference does not check placement.
+              </p>
+            </div>
+          </div>
+        </div>
+        <p class="small camera-footnote">
+          Live preview stays on this device · microphone off · only snapshots
+          you choose are saved · Meta receives photos only on lookup
+        </p>
+      </section>
       <section class="workspace">
         <div class="memory-panel">
           <div class="panel-heading">

@@ -18,6 +18,8 @@ October 26, 2026, subsequent milestone: Codex and Claude Code collaborated on a 
 
 The review led to recovery preservation, persistent source highlights, mutation guards during lookups, request-size preflight and multi-view queries. Claude implemented 1–3 query views and sanitized usage counts in the provider/server; Codex implemented their UI and regression checks. Abriana selected her chess set for the first real test. Both tools assessed it as an initial test of restoring recorded arrangements, with unresolved identical-piece ambiguity disclosed.
 
+October 26, 2026, live camera milestone: at Abriana's request, Claude authored `web/camera.js` and its hardware-mocked lifecycle tests. Codex authored the camera panel, device selection integration, deliberate step/query snapshots, adjustable original-photo reference overlay, and app regression tests. Codex reviewed Claude's startup handling and found a timeout gap while playback was pending; Claude corrected it and added cancellation/late-result regressions. Claude reviewed Codex's interface and identified a mismatch in image proportions for overlay comparison; Codex added compatibility gating, orientation-change handling and tests. The partners agreed on ideal 1080p capture with a 1440-pixel stored-image cap and no mirrored reference view. Codex ran the combined tests and HTTP smoke checks. No real webcam was activated, no continuous clip was recorded, and no Meta request was made during this milestone. Physical camera behavior and real recognition remain unverified.
+
 ## People and tools
 
 - Project owner and direction: **Abriana Meazzo (Kittybri)**.

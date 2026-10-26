@@ -14,7 +14,7 @@ A new, standalone visual-memory module for the Meta Global AI Developer Hackatho
 
 ## Current status
 
-**Local photo workspace and Meta adapter implemented; real recognition not yet evaluated.** Capture up to 12 photographs, add notes and mark parts, replay steps in reverse, and export/import a complete backup. The workspace saves in this browser's IndexedDB. Browser storage can be cleared; export to keep an independent copy. Query photographs are temporary and are not included in backups.
+**Local photo workspace, live camera capture and Meta adapter implemented; real recognition not yet evaluated.** Use a webcam preview or upload up to 12 photographs, add notes and mark parts, replay steps in reverse, and export/import a complete backup. Overlay a recorded step on the live camera as a manual reference. The workspace saves in this browser's IndexedDB. Browser storage can be cleared; export to keep an independent copy. Query photographs are temporary and are not included in backups.
 
 The Python service can send an explicit lookup to Muse Spark when configured. It verifies source-image hashes and validates the answer's evidence references. No live provider request has been made in development so far. Automated checks use test doubles; they do not establish recognition accuracy or live API compatibility. SAM and automatic part-region detection are not implemented.
 
@@ -28,10 +28,12 @@ py -m reversesteps.server --port 8765
 
 Open `http://127.0.0.1:8765/`. Keep this server running while using the app. It binds to this computer only, so a phone cannot reach it over Wi-Fi. No Python dependencies are required. Source files are served directly from `web/`; no frontend build is needed. Use the same address and browser each time to return to the saved workspace.
 
-1. Name the object and add photos in removal order.
+1. Name the object and add photos in removal order, or choose **Start camera** and **Save this step** before each removal.
 2. Select each step, write a note and name a visible part. Choose **Mark a part**, then drag a box around it.
 3. Choose **Rebuild in reverse** to walk back through the original photographs.
-4. When Meta is configured, upload a loose-part photo and choose **Find its story**. Inspect any suggestion in the source photo; similar parts should request more evidence.
+4. When Meta is configured, upload a loose-part photo or use **Use as mystery piece** in the camera panel, then choose **Find its story**. Inspect any suggestion in the source photo; similar parts should request more evidence.
+
+The camera preview stays local with no microphone. Capture is deliberate; there is no continuous clip recording or automatic step detection. **Overlay recorded step** helps manual comparison and does not verify placement. Camera permission and physical hardware behavior still need a real browser check. See the [camera guide](docs/LIVE_CAMERA.md).
 
 Only an explicit lookup sends the source and query photos to Meta. The service does not save photos or model responses. Use **Same part, another view** to retain the first query photo and add up to two more. Selecting **Choose a different part** starts a fresh query. Multiple views are the user's assertion of the same physical piece, not verified identity. Failed local restores preserve a recovery copy or pause saving, and a recovery download is available when the previous record could be read.
 
@@ -66,11 +68,13 @@ Cross-photo part identification and useful assembly comparisons must be measured
 - `reversesteps/server.py`: local-only static and lookup service.
 - `reversesteps/meta_provider.py`: Meta Responses adapter with validated references.
 - `web/`: photo workspace, local persistence, reverse timeline and lookup interface.
+- `web/camera.js`: user-started local camera lifecycle and JPEG capture.
 - `tests/`: evidence integrity, ambiguity and input validation checks.
 - `docs/BUILD_PLAN.md`: focused milestones and demo evaluation.
 - `docs/WORKING_CONTRACT.md`: Codex/Claude ownership and integration contract.
 - `docs/VALIDATION.md`: completed checks and remaining verification.
 - `docs/CHESS_TEST.md`: the user's chosen first real-object test protocol.
+- `docs/LIVE_CAMERA.md`: live preview, snapshot and reference-overlay instructions.
 - `PROVENANCE.md`: pre-existing work, event work and AI assistance.
 - `AGENTS.md` / `CLAUDE.md`: shared development boundaries.
 

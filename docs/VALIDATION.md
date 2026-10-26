@@ -6,11 +6,13 @@
 - DOM interaction checks run by Codex: backup restore and local persistence, reverse playback, corrupt image hashes, invalid regions/duplicate references, clarification and source navigation, inert model text, failed lookups and source deletion.
 - JavaScript syntax checked with Node. HTML/CSS/JS formatted for review.
 
-Final checks: **57 Python tests and 13 DOM interaction tests passed**, including multi-view request ordering, original query attribution, sanitized usage reporting, recovery after failed restoration and highlight persistence. No unit-test result is a visual recognition result.
+Current checks: **57 Python tests and 52 JavaScript camera/DOM tests passed**, including multi-view request ordering, original query attribution, sanitized usage reporting, recovery after failed restoration, highlight persistence, camera lifecycle races, snapshot integration and reference-overlay compatibility. The actual controller is also exercised together with the application in a DOM harness with mocked hardware. No unit-test result is a visual recognition result.
+
+The local server returned HTTP 200 for the page and camera script, with the controller loaded before the app. JavaScript syntax and whitespace checks passed. The running provider status remains disabled. See [LIVE_CAMERA.md](LIVE_CAMERA.md) for the outstanding hands-on acceptance check.
 
 ## Not verified yet
 
-- Real browser rendering, touch/pointer drawing, photo decoding/rotation and downloads. Browser automation was disabled in the user's Work settings during this turn. DOM tests intentionally mock layout and image loading; visual quality remains subject to a real browser check.
+- Real browser rendering, touch/pointer drawing, photo decoding/rotation and downloads. Browser automation was disabled in the user's Work settings during this turn. DOM tests intentionally mock layout and image loading; visual quality remains subject to a real browser check. Real webcam permissions, startup timing, hardware switching and camera capture quality are also unverified.
 - Meta account credits/access and Responses strict JSON compatibility with the selected model.
 - Recognition accuracy, unknown-part rejection, useful follow-up questions, real latency and API cost.
 - Cross-device access: this iteration is loopback only. Phone photos must be transferred/uploaded on the laptop.
